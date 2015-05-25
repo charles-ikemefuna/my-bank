@@ -45,14 +45,35 @@ public void withdraw(double amount) {
 //                if (amount <= 4000)
 //                    return 20;
             case MAXI_SAVINGS:
-                if (amount <= 1000)
+               /* if (amount <= 1000)
                     return amount * 0.02;
                 if (amount <= 2000)
                     return 20 + (amount-1000) * 0.05;
                 return 70 + (amount-2000) * 0.1;
             default:
-                return amount * 0.001;
+                return amount * 0.001;*/
+                //Change **Maxi-Savings accounts** to have an interest rate of 5% assuming no withdrawals in the past 10 days
+            	Date tenDaysAgo = new Date(Calendar.getInstance().getTimeInMillis()-10*24*60*60*1000);
+            	for(Transaction t : transactions) {
+            		if(t.getTransactionDate().after(tenDaysAgo)) {
+            			return amount * calculateAPY(0.01);
+            		}
+            	}
+            	return amount * calculateAPY(0.05);
+            default:
+                return amount * calculateAPY(0.001);
         }
+    }
+    
+     //Interest rates should accrue daily (incl. weekends), rates above are per-annum
+    public static double calculateAPY(double rate) {
+    	// APY = (1+ APR / n)^n - 1 where n equals to the number of compounding periods.
+    	int periods = 365; //to manage better, ex: step years, etc...
+    	BigDecimal one = new BigDecimal(rate).divide(new BigDecimal(periods),RoundingMode.HALF_UP);
+    	one = one.add(new BigDecimal(1));
+    	one = one.pow(periods);
+    	one = one.subtract(new BigDecimal(1));
+    	return one.doubleValue();
     }
 
     public double sumTransactions() {
